@@ -1,0 +1,3 @@
+[submodule "graphical_template"]
+	path = graphical_template
+	url = https://github.com/huiwen911/graphical_template.git
