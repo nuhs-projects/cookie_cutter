@@ -29,7 +29,7 @@ $ pip install cookiecutter # for first timer
 $ cookiecutter https://github.com/audreyfeldroy/cookiecutter-pypackage #say yes even if you have existing folder
 # subsequently, you will be prompt to answer the following questions
 ```
-![Screenshot 2025-04-25 104845.png](<attachment:Screenshot 2025-04-25 104845.png>))
+![example prompts](Screenshot%202025-04-25%20104845.png)
 
 After which, you have successfully create project folder with standardised files structure.
 
