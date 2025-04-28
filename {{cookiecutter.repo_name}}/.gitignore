@@ -13,15 +13,11 @@ dist/
 # Compiled Java class files
 *.class
 
-# Compiled Python bytecode
-*.py[cod]
-
 # Package files
 *.jar
 
 # Maven
 target/
-dist/
 
 # JetBrains IDE
 .idea/
@@ -62,6 +58,9 @@ venv/
 *.jpg
 *.jpeg
 *.gif
+
+# EXCEPTION: allow screenshot images
+!Screenshot*.png
 
 # Test outputs
 test_run.ipynb
