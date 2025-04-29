@@ -1,13 +1,14 @@
 import os
 import logging
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.engine import URL
 import nuhs_lst.utils.log_utils as lu
 import nuhs_lst.utils.exception_utils as eu
 
 # Initialize logger
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 
 class DBManager:
@@ -61,12 +62,13 @@ class DBManager:
             logger.debug(data)
 
         try:
+            stmt = text(query) 
             with self.engine.connect() as conn:
                 logger.debug("Executing query")
-                cursor = conn.execute(query, data) if data else conn.execute(query)
+                cursor = conn.execute(stmt, data) if data else conn.execute(stmt)
                 logger.debug(f"Number of rows affected: {cursor.rowcount}")
         except Exception as e:
-            return self._handle_exception(query, data, e)
+            return self._handle_exception(stmt, data, e)
 
     def execute_to_dataframe(self, query, params=None, verbose=True):
         """Executes a query and returns the result as a pandas DataFrame.
@@ -79,12 +81,14 @@ class DBManager:
         Returns:
             pd.DataFrame or None: The resulting DataFrame, or None if an error occurred.
         """
+        
         try:
+            stmt = text(query)
             with self.engine.connect() as conn:
                 if verbose:
                     logger.debug(query)
                     logger.debug(params)
-                cursor = conn.execute(query, params) if params else conn.execute(query)
+                cursor = conn.execute(stmt, params) if params else conn.execute(stmt)
                 df = pd.DataFrame(cursor.fetchall())
                 if df.empty:
                     return None
@@ -92,7 +96,7 @@ class DBManager:
                 logger.debug(f"Resulting DataFrame shape: {df.shape}")
                 return df
         except Exception as e:
-            return self._handle_exception(query, params, e)
+            return self._handle_exception(stmt, params, e)
         return None
 
     def _handle_exception(self, query, data, e):
@@ -130,12 +134,17 @@ class DBManager:
         Returns:
             int: The result of the count query.
         """
-        with self.engine.connect() as conn:
-            logger.debug(query)
-            logger.debug(params)
-            cursor = (
-                conn.execute(query, params).fetchone()[0]
-                if params
-                else conn.execute(query).fetchone()[0]
-            )
-            return cursor
+        try:
+            stmt = text(query)
+            with self.engine.connect() as conn:
+                logger.debug(query)
+                logger.debug(params)
+                cursor = (
+                    conn.execute(stmt, params).fetchone()[0]
+                    if params
+                    else conn.execute(stmt).fetchone()[0]
+                )
+                return cursor
+        except Exception as e:
+            return self._handle_exception(query, params, e)
+
