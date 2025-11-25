@@ -20,7 +20,7 @@ bitsandbytes==0.43.0
 auto-gptq==0.7.1
 optimum==1.18.0
 openai==1.24.1
-langchain==0.1.16
+langchain==0.2.5
 faiss-cpu==1.8.0
 chromadb==0.4.24
 llama-index==0.10.33
