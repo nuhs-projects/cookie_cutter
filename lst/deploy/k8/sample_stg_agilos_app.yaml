@@ -1,0 +1,152 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agilos-app-deployment
+  labels:
+    app: agilos-app
+  namespace: eai-model
+spec:
+  selector:
+    matchLabels:
+      app: agilos-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: agilos-app
+    spec:
+      volumes:
+      - name: kafka-security  
+        secret:
+          secretName: kafka-truststore-pem
+      containers:
+      - name: agilos-app-container
+        command: ["python"]
+        args: ["run.py","live"]
+        env:
+        - name: TZ
+          value: "Asia/Singapore"
+        - name: PROJECT_NAME
+          value: "LOS"
+        - name: LOG_LEVEL
+          value: "INFO"
+          # value: "DEBUG"
+        - name: SELF_DESTRUCT_TIMER
+          value: "300"
+          # Testing params
+        - name: LIVE_TESTING_PRODUCER_TOPIC
+          value: "nuhs.eai.hl7.mdm"
+        - name: LIVE_TESTING_LOG_LEVEL
+          value: "DEBUG"
+          #DB Settings
+        - name: DB_URL
+          value: "172.29.10.101"
+        - name: DB_PORT
+          value: "1433"
+        - name: DB_NAME
+          value: "nuhs_eai"
+        - name: DB_USER
+          valueFrom:
+                secretKeyRef:
+                  name: agilos-app-secret
+                  key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+                secretKeyRef:
+                  name: agilos-app-secret
+                  key: DB_PASSWORD
+        - name: DB_STRICT_WITH_EXCEPTIONS
+          value: "TRUE"
+        # Kafka Settings
+        - name: CONSUMER_TOPIC
+          value: "nuhs.eai.hl7.mdm"
+        - name: PRODUCER_TOPIC
+          value: "nuhs.eai.prediction.results"
+        - name: CONSUMER_ASYNC
+          value: "TRUE"
+        - name: PRODUCER_ASYNC
+          value: "TRUE"
+        - name: bootstrap.servers
+          value: "kafka-0.tib-messaging.svc.uat.eainuhs.local:32400"
+        - name: group.id
+          value: "eai-lst-los-grp"
+        - name: auto.offset.reset
+          value: "latest"
+        - name: enable.auto.commit
+          value: "false"
+        - name: max.poll.interval.ms
+          value: "86400000"
+        - name: sasl.mechanism
+          value: "SCRAM-SHA-256"
+        - name: security.protocol
+          value: "SASL_SSL"
+        - name: ssl.ca.location
+          value: "/NUHS/kafka/kafka.server.truststore.pem"
+        - name: sasl.username
+          valueFrom:
+                secretKeyRef:
+                  name: lst-kafka-secret
+                  key: KAFKA_USERNAME
+        - name: sasl.password
+          valueFrom:
+                secretKeyRef:
+                  name: lst-kafka-secret
+                  key: KAFKA_PASSWORD
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8118
+          # initialDelaySeconds: 60
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8118
+          # initialDelaySeconds: 240
+          initialDelaySeconds: 30
+          periodSeconds: 10
+
+        image: 172.25.10.126:5000/nuhs/agilos_app:0.0.2
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: kafka-security  
+            mountPath: /NUHS/kafka/ 
+        ports:
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 1Gi
+---
+apiVersion: v1
+data:
+  DB_USER: <keep trying :)>
+  DB_PASSWORD: <mayb password321?>
+kind: Secret
+metadata:
+  name: agilos-app-secret
+  namespace: eai-model
+type: Opaque
+---
+apiVersion: v1
+data:
+  KAFKA_USERNAME: <create you own>
+  KAFKA_PASSWORD: <create your own>
+kind: Secret
+metadata:
+  name: lst-kafka-secret
+  namespace: eai-model
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: eai-model
+  name: kafka-truststore-pem
+data:
+  kafka.server.truststore.pem: QmFnIEF0dHJpYnV0ZXMKICAgIGZyaWVuZGx5TmFtZTogY2EtY2VydAogICAgMi4xNi44NDAuMS4xMTM4OTQuNzQ2ODc1LjEuMTogPFVuc3VwcG9ydGVkIHRhZyA2PgpzdWJqZWN0PUMgPSBTRywgU1QgPSBTaW5nYXBvcmUsIEwgPSBDQkQsIE8gPSBUSUJDTywgQ04gPSBsb2NhbGhvc3QKCmlzc3Vlcj1DID0gU0csIFNUID0gU2luZ2Fwb3JlLCBMID0gQ0JELCBPID0gVElCQ08sIENOID0gbG9jYWxob3N0CgotLS0tLUJFR0lOIENFUlRJRklDQVRFLS0tLS0KTUlJRElqQ0NBZ29DQ1FDZnl6c1BvSmlkRWpBTkJna3Foa2lHOXcwQkFRc0ZBREJUTVFzd0NRWURWUVFHRXdKVApSekVTTUJBR0ExVUVDQXdKVTJsdVoyRndiM0psTVF3d0NnWURWUVFIREFORFFrUXhEakFNQmdOVkJBb01CVlJKClFrTlBNUkl3RUFZRFZRUUREQWxzYjJOaGJHaHZjM1F3SGhjTk1qSXdNVEF5TVRNeE1qUTNXaGNOTXpFeE1qTXgKTVRNeE1qUTNXakJUTVFzd0NRWURWUVFHRXdKVFJ6RVNNQkFHQTFVRUNBd0pVMmx1WjJGd2IzSmxNUXd3Q2dZRApWUVFIREFORFFrUXhEakFNQmdOVkJBb01CVlJKUWtOUE1SSXdFQVlEVlFRRERBbHNiMk5oYkdodmMzUXdnZ0VpCk1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLQW9JQkFRQzZRdGRJVHJxMXREcTBCVnR3YWRvN2pEQmQKakZycDd5MVg1YXR5QmdwWnczUEUvSmRaOVJXeGl6dVBqbjRnV1dsSGQzZUNyNmxYWi9pTnNkSys4MUdkTk5GKwpzbEU3THJvUCtmYmxqTGpBeS9zOHBoN1g0cUV6OXpDU3hCaHVBRUhwUHVLS1dqVno0eUxicUR1bE9MNlp2ZzAxCnhZZ0kvMk1IS25ROVBneVFiU0I2azQySmE0T2dFcWg3bzNWdm1IR09xOE9LVzNDVkRvQ2tNdnNoMlo1KzFzVDkKU0RBTTZXZmFvdlFLazRnM1RZbW1PZVhURFFwNm1qcWwzTXh4bDdGcUhTZHM0UFdxL0ttTXhLczZCYVE5UmhBTwplSVNHNUZrVVhwSDgrQktmVTE2TmY3eEJGdXhQaWRudUdoRXdQVmg5eEdRSEc5ZWJwY2M1eTU0YVNBdC9BZ01CCkFBRXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBRlRvS1JJZWhlb3d2OFU5bko5a0xWRjVlWmIxS2JkVlZLbC8KRUpERWNlU09jMFFnZDNnOGk4VjVTakhVVXBmY2FxTWNRVzhobUFIdjA2VmJjOFBRSkxhbWhiRmhDb0RTd0Z4TQpzNU41aWpRTlZkZVJDSTdyckdRN05zOSs3ekZlNW4wbU9vemdEQ3VYaC9KMEl1Rnd4d3BvNWNFZFN3Q1JWVzU3Cjg4N1plTmkyTS94Q0ppT2xEdDdaRlQ3ZDMvUWZTOEo4bERxOGdkdTFnUGFqQmJndnhKUzFDTDVhck1lVVpad0kKK2pLN1ZJanQvdEUwTXk4cEpiWC9oZmJMaGlqcHN1Sm45aS9oT2ZCcVlXdWo2dFJzZnZxUzZSRG12d2VLNlpKdAo1RnZwT2xDNFh5dGZFbUlXbzE4Q0dnNVN6V2c4Q2czNTZzSlZlK0xwZVBwVzc1bHl4R1E9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+--- 

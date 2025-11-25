@@ -1,0 +1,152 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agilos-app-deployment
+  labels:
+    app: agilos-app
+  namespace: nuhs-ds
+spec:
+  selector:
+    matchLabels:
+      app: agilos-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: agilos-app
+    spec:
+      volumes:
+      - name: kafka-security  
+        secret:
+          secretName: kafka-truststore-pem
+      containers:
+      - name: agilos-app-container
+        command: ["python"]
+        args: ["run.py","live"]
+        env:
+        - name: TZ
+          value: "Asia/Singapore"
+        - name: PROJECT_NAME
+          value: "LOS"
+        - name: LOG_LEVEL
+          value: "INFO"
+          # value: "DEBUG"
+        - name: SELF_DESTRUCT_TIMER
+          value: "300"
+          # Testing params
+        - name: LIVE_TESTING_PRODUCER_TOPIC
+          value: "nuhs.eai.hl7.mdm"
+        - name: LIVE_TESTING_LOG_LEVEL
+          value: "DEBUG"
+          #DB Settings
+        - name: DB_URL
+          value: "10.21.55.247"
+        - name: DB_PORT
+          value: "1433"
+        - name: DB_NAME
+          value: "nuhs_eai"
+        - name: DB_USER
+          valueFrom:
+                secretKeyRef:
+                  name: agilos-app-secret
+                  key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+                secretKeyRef:
+                  name: agilos-app-secret
+                  key: DB_PASSWORD
+        - name: DB_STRICT_WITH_EXCEPTIONS
+          value: "TRUE"
+        # Kafka Settings
+        - name: CONSUMER_TOPIC
+          value: "nuhs.eai.hl7.mdm"
+        - name: PRODUCER_TOPIC
+          value: "nuhs.eai.prediction.results"
+        - name: CONSUMER_ASYNC
+          value: "TRUE"
+        - name: PRODUCER_ASYNC
+          value: "TRUE"
+        - name: bootstrap.servers
+          value: "a4615670b2dc846e89f375f7d5a876cc-558436384.ap-southeast-1.elb.amazonaws.com:32410"
+        - name: group.id
+          value: "eai-lst-auggy-local-grp"
+        - name: auto.offset.reset
+          value: "latest"
+        - name: enable.auto.commit
+          value: "false"
+        - name: max.poll.interval.ms
+          value: "86400000"
+        - name: sasl.mechanism
+          value: "SCRAM-SHA-256"
+        - name: security.protocol
+          value: "SASL_SSL"
+        - name: ssl.ca.location
+          value: "/NUHS/kafka/kafka.server.truststore.pem"
+        - name: sasl.username
+          valueFrom:
+                secretKeyRef:
+                  name: lst-kafka-secret
+                  key: KAFKA_USERNAME
+        - name: sasl.password
+          valueFrom:
+                secretKeyRef:
+                  name: lst-kafka-secret
+                  key: KAFKA_PASSWORD
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8118
+          # initialDelaySeconds: 60
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8118
+          # initialDelaySeconds: 240
+          initialDelaySeconds: 30
+          periodSeconds: 10
+
+        image: 651931727348.dkr.ecr.ap-southeast-1.amazonaws.com/laksh/agilos_app:0.0.2
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: kafka-security  
+            mountPath: /NUHS/kafka/ 
+        ports:
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 1Gi
+---
+apiVersion: v1
+data:
+  DB_USER: <nice try!>
+  DB_PASSWORD: <obviously, its password123>
+kind: Secret
+metadata:
+  name: agilos-app-secret
+  namespace: nuhs-ds
+type: Opaque
+---
+apiVersion: v1
+data:
+  KAFKA_USERNAME: <create your own>
+  KAFKA_PASSWORD: <create your own>
+kind: Secret
+metadata:
+  name: lst-kafka-secret
+  namespace: nuhs-ds
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: nuhs-ds
+  name: kafka-truststore-pem
+data:
+  kafka.server.truststore.pem: Ni44NDAuMS4xMTM4OTQuNzQ2ODc1LjEuMTogPFVuc3VwcG9ydGVkIHRhZyA2PgpzdWJqZWN0PS9DPVNHL1NUPVNvdXRoIEVhc3QvTD1TRy9PPU5VSFMvT1U9TlVIUy9DTj1DQSBLYWZrYS9lbWFpbEFkZHJlc3M9dGVzdEBuaHVzLmNvbQppc3N1ZXI9L0M9U0cvU1Q9U291dGggRWFzdC9MPVNHL089TlVIUy9PVT1OVUhTL0NOPUNBIEthZmthL2VtYWlsQWRkcmVzcz10ZXN0QG5odXMuY29tCi0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlEenpDQ0FyZWdBd0lCQWdJSkFNSTdFUnBTZ2VjOE1BMEdDU3FHU0liM0RRRUJDd1VBTUg0eEN6QUpCZ05WCkJBWVRBbE5ITVJNd0VRWURWUVFJREFwVGIzVjBhQ0JGWVhOME1Rc3dDUVlEVlFRSERBSlRSekVOTUFzR0ExVUUKQ2d3RVRsVklVekVOTUFzR0ExVUVDd3dFVGxWSVV6RVJNQThHQTFVRUF3d0lRMEVnUzJGbWEyRXhIREFhQmdrcQpoa2lHOXcwQkNRRVdEWFJsYzNSQWJtaDFjeTVqYjIwd0hoY05NakV3TlRJd01UYzFOekF3V2hjTk16RXdOVEU0Ck1UYzFOekF3V2pCK01Rc3dDUVlEVlFRR0V3SlRSekVUTUJFR0ExVUVDQXdLVTI5MWRHZ2dSV0Z6ZERFTE1Ba0cKQTFVRUJ3d0NVMGN4RFRBTEJnTlZCQW9NQkU1VlNGTXhEVEFMQmdOVkJBc01CRTVWU0ZNeEVUQVBCZ05WQkFNTQpDRU5CSUV0aFptdGhNUnd3R2dZSktvWklodmNOQVFrQkZnMTBaWE4wUUc1b2RYTXVZMjl0TUlJQklqQU5CZ2txCmhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBdzdJTzQvaDRPcldPUW9lVm9ZdGJ6dW9nMlF4d0YrYXUKUitYd0o2dmtRT1V2a3ZhamR5REh0TUkyL0VEK3EwZlhuWC9xV1Fyb2dnYmtIeDNMSi96dTAwb1ZtdnJFNUxGcQp2MWt5N0tmeHErNm9OdlMwTzV4WmJ4TnBlR2E4aUI2YksrelVUbEZzc0ZUTXdEVld1N05ibXRheWtqdFJ3KzQrCnB1WDh6aGwzZzNGUE10RFpyVWxMQ0d3UWlYbFpnck9oc1IvL2dMcFZVMnY5SmEwRDhVcW4yT1UxYUxqVmwwSnUKWXBXanA1VUpOK3FvREJ1S3kyUlJYUDlKbzdUNTl4OTVpSnFVTHFPWVlmQUNQVVRsMWRCcjZON0ZIazlaV1A1ZwpEamh5a2hGWTc4QWttdXpLZTU2SUZCWDRTVkZGWjNEa3ZCU1N6Z25wZ2hXUi9ldVhvVllIU1FJREFRQUJvMUF3ClRqQWRCZ05WSFE0RUZnUVVTTFZDOVI0S1JFcExtT0JkZGF6d2lpaysyWm93SHdZRFZSMGpCQmd3Rm9BVVNMVkMKOVI0S1JFcExtT0JkZGF6d2lpaysyWm93REFZRFZSMFRCQVV3QXdFQi96QU5CZ2txaGtpRzl3MEJBUXNGQUFPQwpBUUVBZjJSeWdPcmU0SFBiQTRIR05TZGRhQ0RXUlE5cDV0VjJ3UjBQcTdWYVVtdW04bzJya0d4SnFlem92emlmCmk1YWpSV2FIV2sxVjZGL0JwYnVVampCZWtPWE5COHhOZ21FSndKOHpxQy9haGVxRWVKRjlIOVN5Mno2R2xtcjcKM2IzcldrWVVZcXphQWIvZjJtcVphSGhBYmdmNUIrOU81NmV5REVOV2daOVBIblJOK3ZiOGhQbldIdW80L2JHRQorMUQ2Zk54UGVSNmV2V1ZmZGZKUTdaeVVxSGRnMXZQZ0JxUWQrNExJZHRkN0RLVWozK005U2IxTVFjTHFMdlBiCk9pQ1RWdWVKZWhXRWFMTmdTMjZjcXdBYkpyYThGVFdXb1dEZzkvUXdYeThhL01HdGt4QkQzV0lWb3dia3RPTFAKRUJBOU5uQkt4azM4bFppam1tL3AwMVpqdFE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+--- 

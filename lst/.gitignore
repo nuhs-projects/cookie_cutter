@@ -1,10 +1,7 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
+# These are some examples of commonly ignored file patterns.
+# You should customize this list as applicable to your project.
+# Learn more about .gitignore:
+#     https://www.atlassian.com/git/tutorials/saving-changes/gitignore
 
 # Node artifact files
 node_modules/
@@ -13,11 +10,18 @@ dist/
 # Compiled Java class files
 *.class
 
+# Compiled Python bytecode
+*.py[cod]
+
+# Log files
+*.log
+
 # Package files
 *.jar
 
 # Maven
 target/
+dist/
 
 # JetBrains IDE
 .idea/
@@ -44,28 +48,6 @@ Thumbs.db
 *.mov
 *.wmv
 
-# Virtual environments
-.env/
-.venv/
-env/
-venv/
-
-# Logs
-*.log
-
-# Images or plots generated during test runs
-*.png
-*.jpg
-*.jpeg
-*.gif
-
-# EXCEPTION: allow screenshot images
-!Screenshot*.png
-
-# Test outputs
-test_run.ipynb
-images/
-outputs/
 
 # CUSTOM IGNORE
 /keytools
@@ -93,3 +75,4 @@ zrun.sh
 
 /deploy/k8/dev_agilos_app.yaml
 /user_dir/testing/*
+
