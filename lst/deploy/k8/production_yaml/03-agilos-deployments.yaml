@@ -1,0 +1,123 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agilos-app-deployment
+  labels:
+    app: agilos-app
+  namespace: eai-model
+spec:
+  selector:
+    matchLabels:
+      app: agilos-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: agilos-app
+    spec:
+      volumes:
+      - name: kafka-security  
+        secret:
+          secretName: kafka-truststore-pem
+      containers:
+      - name: agilos-app-container
+        command: ["python"]
+        args: ["run.py","live"]
+        env:
+        - name: TZ
+          value: "Asia/Singapore"
+        - name: PROJECT_NAME
+          value: "LOS"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: SELF_DESTRUCT_TIMER
+          value: "150"
+          # Testing params
+        - name: LIVE_TESTING_PRODUCER_TOPIC
+          value: "nuhs.eai.hl7.mdm"
+        - name: LIVE_TESTING_LOG_LEVEL
+          value: "INFO"
+          #DB Settings
+        - name: DB_URL
+          value: "172.24.10.104"
+        - name: DB_PORT
+          value: "1433"
+        - name: DB_NAME
+          value: "nuhs_eai"
+        - name: DB_USER
+          valueFrom:
+                secretKeyRef:
+                  name: agilos-app-secret
+                  key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+                secretKeyRef:
+                  name: agilos-app-secret
+                  key: DB_PASSWORD
+        - name: DB_STRICT_WITH_EXCEPTIONS
+          value: "TRUE"
+        # Kafka Settings
+        - name: CONSUMER_TOPIC
+          value: "nuhs.eai.hl7.mdm"
+        - name: PRODUCER_TOPIC
+          value: "nuhs.eai.prediction.results"
+        - name: CONSUMER_ASYNC
+          value: "TRUE"
+        - name: PRODUCER_ASYNC
+          value: "TRUE"
+        - name: bootstrap.servers
+          value: "kafka-0.tib-messaging.svc.prd.eainuhs.local:32400"
+        - name: group.id
+          value: "eai-lst-los-grp"
+        - name: auto.offset.reset
+          value: "latest"
+        - name: enable.auto.commit
+          value: "false"
+        - name: max.poll.interval.ms
+          value: "86400000"
+        - name: sasl.mechanism
+          value: "SCRAM-SHA-256"
+        - name: security.protocol
+          value: "SASL_SSL"
+        - name: ssl.ca.location
+          value: "/NUHS/kafka/kafka.server.truststore.pem"
+        - name: sasl.username
+          valueFrom:
+                secretKeyRef:
+                  name: los-kafka-secret
+                  key: KAFKA_USERNAME
+        - name: sasl.password
+          valueFrom:
+                secretKeyRef:
+                  name: los-kafka-secret
+                  key: KAFKA_PASSWORD
+        #readinessProbe:
+        #  httpGet:
+        #    path: /healthcheck
+        #    port: 8118
+        #    initialDelaySeconds: 60
+        #  initialDelaySeconds: 10
+        #  periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8118
+          # initialDelaySeconds: 240
+          initialDelaySeconds: 30
+          periodSeconds: 10
+
+        image: 172.20.10.136:5000/nuhs/agilos_app:0.0.2
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: kafka-security  
+            mountPath: /NUHS/kafka/ 
+        ports:
+        resources:
+          requests:
+            cpu: 10
+            memory: 2Gi
+          limits:
+            cpu: 10
+            memory: 2Gi
+---

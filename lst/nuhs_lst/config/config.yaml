@@ -1,0 +1,58 @@
+# Project settings
+PROJECT_NAME: "agilos"
+
+
+# LST Setting
+# START_DATE: '2022-01-01'
+# LOG_LEVEL: 'INFO' # NOTSET,DEBUG,INFO,ERROR,CRITICAL
+LOG_LEVEL: 'DEBUG' # NOTSET,DEBUG,INFO,ERROR,CRITICAL
+# LST Kafka Setting
+SELF_DESTRUCT_TIMER: "60" #secs
+
+
+#####################################################################################
+# Testing settings
+LIVE_TESTING_PRODUCER_TOPIC: "nuhs.eai.hl7.mdm"
+LIVE_TESTING_LOG_LEVEL: 'DEBUG'
+
+
+####################################################################################
+
+# DB Settings
+NO_DBM: false
+DB_USER: 'laksh_test'
+# DB_PASSWORD: '3fS87%$8ji!s0_Wa'
+DB_PASSWORD: 'P@SSW0rd2320!@&'
+DB_URL: 'localhost'
+DB_PORT: '9433'
+DB_NAME: 'nuhs_eai'
+
+DB_STRICT_WITH_EXCEPTIONS: 'TRUE'
+
+# Kafka Settings
+# TOPIC Settings
+CONSUMER_TOPIC: "nuhs.eai.hl7.mdm"
+PRODUCER_TOPIC: "nuhs.eai.prediction.results"
+
+# GENERAL SETTINGS
+bootstrap.servers: "a4615670b2dc846e89f375f7d5a876cc-558436384.ap-southeast-1.elb.amazonaws.com:32410"
+group.id: "eai-lst-mim-local-grp"
+auto.offset.reset: "latest"
+enable.auto.commit: "false"
+max.poll.interval.ms: "86400000"
+sasl.mechanism: "SCRAM-SHA-256"
+security.protocol: "SASL_SSL"
+ssl.ca.location: "./nuhs_lst/resource/kafka.server.truststore.pem"
+
+retry.backoff.ms: 10
+message.send.max.retries: 3
+
+sasl.username: "lstuser"
+sasl.password: "lstuser"
+
+CONSUMER_ASYNC: "TRUE" # TRUE/FALSE/NONE
+# PRODUCER_ASYNC: "FALSE" # TRUE/FALSE/NONE
+PRODUCER_ASYNC: "TRUE" # TRUE/FALSE/NONE
+
+
+

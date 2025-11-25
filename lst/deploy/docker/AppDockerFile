@@ -1,0 +1,10 @@
+FROM base_agilos_app:0.0.1
+
+WORKDIR /app
+
+COPY ./nuhs_lst/ ./nuhs_lst/
+COPY ./user_dir/ ./user_dir/
+COPY ./run.py ./run.py
+
+
+
