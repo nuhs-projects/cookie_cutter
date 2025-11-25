@@ -23,7 +23,7 @@ openai==1.24.1
 langchain==0.1.16
 faiss-cpu==1.8.0
 chromadb==0.4.24
-llama-index==0.10.33
+llama-index==0.13.0
 llama-cpp-python==0.2.73
 tokenizers==0.19.1
 biom-format==2.1.16
