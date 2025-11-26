@@ -26,10 +26,10 @@ we will be using cookiecutter file structure from [https://github.com/nuhs-proje
 
 ```bash
 $ pip install cookiecutter # for first timer
-$ cookiecutter https://github.com/audreyfeldroy/cookiecutter-pypackage #say yes even if you have existing folder
+$ cookiecutter https://github.com/nuhs-projects/cookie_cutter #say yes even if you have existing folder
 # subsequently, you will be prompt to answer the following questions
 ```
-![example prompts](Screenshot%202025-04-25%20104845.png)
+![example prompts](Screenshot2025-11-27.png)
 
 After which, you have successfully create project folder with standardised files structure.
 
