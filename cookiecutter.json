@@ -3,5 +3,6 @@
     "year":"2021",
     "full_name":"my name",
     "remote":"", 
-    "version": ""
+    "version": "0.0.1",
+    "project_short_description": "your description here"
 }
