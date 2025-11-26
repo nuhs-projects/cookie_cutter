@@ -1,8 +1,10 @@
 {
     "repo_name":"someProject",
-    "year":"2021",
+    "year":"2025",
     "full_name":"my name",
     "remote":"", 
     "version": "0.0.1",
     "project_short_description": "your description here"
+    "email": "blabla@mail.com",
+    "github_username": "blabla"
 }
