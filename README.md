@@ -22,7 +22,7 @@ This **does** not replace documentation. Please document as per usual.
 ## Creating new cookiecutter structure file
 
 The aim here is to have a standardised file structure for new NUHS project repositories.
-we will be using cookiecutter file structure from https://github.com/audreyfeldroy/cookiecutter-pypackage
+we will be using cookiecutter file structure from [https://github.com/nuhs-projects/cookie_cutter](https://github.com/nuhs-projects/cookie_cutter)
 
 ```bash
 $ pip install cookiecutter # for first timer
@@ -33,7 +33,7 @@ $ cookiecutter https://github.com/audreyfeldroy/cookiecutter-pypackage #say yes 
 
 After which, you have successfully create project folder with standardised files structure.
 
-## Adding repositories as submodule
+## Adding repositories as submodule - DEPRECATED
 
 Steps to add new project repository into cookie cutter.
 refer to `graphical_template` as example child repository.
