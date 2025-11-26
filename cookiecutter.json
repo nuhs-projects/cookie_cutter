@@ -7,5 +7,7 @@
     "project_short_description": "your description here",
     "email": "blabla@mail.com",
     "github_username": "blabla", 
-    "open_source_license": "MIT"
+    "open_source_license": "MIT",
+    "command_line_interface": "Y",
+    "use_pytest": "Y"
 }
