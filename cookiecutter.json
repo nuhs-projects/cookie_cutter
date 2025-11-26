@@ -2,5 +2,6 @@
     "repo_name":"someProject",
     "year":"2021",
     "full_name":"my name",
-    "remote":""
+    "remote":"", 
+    "version": ""
 }
